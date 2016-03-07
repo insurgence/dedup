@@ -2,10 +2,60 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using System.Linq;
 using System.Security.Cryptography;
 
-public class findDupes
+
+public class Adler32Managed : HashAlgorithm
+{
+    private ushort o_sum_1;
+    private ushort o_sum_2;
+
+    public Adler32Managed()
+    {
+        Initialize();
+    }
+
+    public override int HashSize
+    {
+        get
+        {
+            return 32;
+        }
+    }
+
+    public override void Initialize()
+    {
+        // reset the sum values
+        o_sum_1 = 1;
+        o_sum_2 = 0;
+    }
+
+    protected override void HashCore(byte[] p_array, int p_start_index,
+    int p_count)
+    {
+        // process each byte in the array
+        for (int i = p_start_index; i < p_count; i++)
+        {
+            o_sum_1 = (ushort)((o_sum_1 + p_array[i]) % 65521);
+            o_sum_2 = (ushort)((o_sum_1 + o_sum_2) % 65521);
+        }
+    }
+
+    protected override byte[] HashFinal()
+    {
+        // concat the two 16 bit values to form
+        // one 32-bit value
+        uint x_concat_value = (uint)((o_sum_2 << 16) | o_sum_1);
+        // use the bitconverter class to render the
+        // 32-bit integer into an array of bytes
+        return BitConverter.GetBytes(x_concat_value);
+
+    }
+
+}
+
+
+    public class findDupes
 {
     static void Main(string[] args)
     {
@@ -14,49 +64,56 @@ public class findDupes
         DateTime now = DateTime.Now;
         Console.WriteLine(now);
 
-        string startFolder = @"D:\";
+        List<string> all = new List<string>();
+        string path = args[0];
 
-        DirectoryInfo dir = new System.IO.DirectoryInfo(startFolder);
-
-        IEnumerable<FileInfo> fileList = dir.GetFiles("*.*", SearchOption.AllDirectories);
-
-        var querySizeGroups =
-            from file in fileList
-            let len = GetFileLength(file)
-            where len > 0
-            group file by (len / 100000) into fileGroup
-            where fileGroup.Key >= 2
-            orderby fileGroup.Key descending
-            select fileGroup;
-
-
-        foreach (var filegroup in querySizeGroups)
+        if (Directory.Exists(path))
         {
-            Console.WriteLine(filegroup.Key.ToString() + "00000");
-            foreach (var item in filegroup)
+            ProcessDirectory(path, ref all);
+        }
+        else
+        {
+            Console.WriteLine("{0} is not a valid file or directory.", path);
+        }
+
+        Console.WriteLine("Ok. Func ProcessDirectory is success");
+        DateTime suck = DateTime.Now;
+        Console.WriteLine(suck);
+
+        string[] files = all.ToArray();
+        List<string> filesums = new List<string>();
+
+        foreach (string file in files)
+            try
             {
-                Console.WriteLine("\t{0}: {1}", item.Name, item.Length);
+                filesums.Add(GetFileSum(file));
             }
-        }
+            catch (System.IO.IOException)
+            {
+                continue;
+            }
+            catch (UnauthorizedAccessException)
+            {
+                continue;
+            }
 
-        Console.WriteLine("Press any key to exit");
+        Console.WriteLine("Ok. Func filesums is success");
+        DateTime filesum = DateTime.Now;
+        Console.WriteLine(filesum);
+
+        List<string> dupes = SearchForDupes(filesums);
+
+        Console.WriteLine("Ok. Func SearchForDupes is success");
+        DateTime tSearchForDupes = DateTime.Now;
+        Console.WriteLine(tSearchForDupes);
+
+        PrintDupes(filesums, dupes, files);
+
+        DateTime end = DateTime.Now;
+        Console.WriteLine(end);
+
+        Console.WriteLine("End");
         Console.ReadKey();
-    }
-
-    static long GetFileLength(System.IO.FileInfo fi)
-    {
-        long retval;
-        try
-        {
-            retval = fi.Length;
-        }
-        catch (System.IO.FileNotFoundException)
-        {
-            // If a file is no longer present,
-            // just add zero bytes to the total.
-            retval = 0;
-        }
-        return retval;
     }
 
     public static void ProcessDirectory(string targetDirectory, ref List<string> temp)
@@ -83,7 +140,7 @@ public class findDupes
         List<string> lines = new List<String>();
         foreach (string dupe in dupes)
         {
-            
+
             lines.Add(dupe + "\n----------");
 
             for (int i = 0; i <= (files.Length - 1); i++)
@@ -114,10 +171,11 @@ public class findDupes
         // using (MD5 sum = MD5.Create())
         // using (FileStream stream = File.OpenRead(file))
         // return BitConverter.ToString(sum.ComputeHash(stream)).Replace("-", "").ToLower();
-        using (MD5 md5Hash = MD5.Create())
+        using (HashAlgorithm x_hash_alg = new Adler32Managed())
         using (FileStream stream = File.OpenRead(file))
         {
-            return GetMd5Hash(md5Hash, stream);
+            //return GetMd5Hash(md5Hash, stream);
+            return BitConverter.ToString(x_hash_alg.ComputeHash(stream)).Replace("-", "").ToLower();
         }
     }
 
@@ -162,4 +220,4 @@ public class findDupes
             Environment.Exit(3);
         }
     }
-}
+} 
