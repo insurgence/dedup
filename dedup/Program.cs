@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Linq;
 using System.Security.Cryptography;
 
 public class findDupes
@@ -13,56 +14,49 @@ public class findDupes
         DateTime now = DateTime.Now;
         Console.WriteLine(now);
 
-        List<string> all = new List<string>();
-        string path = args[0];
-        
-        if (Directory.Exists(path))
+        string startFolder = @"D:\";
+
+        DirectoryInfo dir = new System.IO.DirectoryInfo(startFolder);
+
+        IEnumerable<FileInfo> fileList = dir.GetFiles("*.*", SearchOption.AllDirectories);
+
+        var querySizeGroups =
+            from file in fileList
+            let len = GetFileLength(file)
+            where len > 0
+            group file by (len / 100000) into fileGroup
+            where fileGroup.Key >= 2
+            orderby fileGroup.Key descending
+            select fileGroup;
+
+
+        foreach (var filegroup in querySizeGroups)
         {
-            ProcessDirectory(path, ref all);
+            Console.WriteLine(filegroup.Key.ToString() + "00000");
+            foreach (var item in filegroup)
+            {
+                Console.WriteLine("\t{0}: {1}", item.Name, item.Length);
+            }
         }
-        else
-        {
-            Console.WriteLine("{0} is not a valid file or directory.", path);
-        }
 
-        Console.WriteLine("Ok. Func ProcessDirectory is success");
-        DateTime suck = DateTime.Now;
-        Console.WriteLine(suck);
-
-        string[] files = all.ToArray();
-        List<string> filesums = new List<string>();
-        
-        foreach (string file in files)
-            try
-            {
-                filesums.Add(GetFileSum(file));
-            }
-            catch(System.IO.IOException)
-            {
-                continue;
-            }
-            catch(UnauthorizedAccessException)
-            {
-                continue;
-            }
-
-        Console.WriteLine("Ok. Func filesums is success");
-        DateTime filesum = DateTime.Now;
-        Console.WriteLine(filesum);
-
-        List<string> dupes = SearchForDupes(filesums);
-
-        Console.WriteLine("Ok. Func SearchForDupes is success");
-        DateTime tSearchForDupes = DateTime.Now;
-        Console.WriteLine(tSearchForDupes);
-
-        PrintDupes(filesums, dupes, files);
-
-        DateTime end = DateTime.Now;
-        Console.WriteLine(end);
-
-        Console.WriteLine("End");
+        Console.WriteLine("Press any key to exit");
         Console.ReadKey();
+    }
+
+    static long GetFileLength(System.IO.FileInfo fi)
+    {
+        long retval;
+        try
+        {
+            retval = fi.Length;
+        }
+        catch (System.IO.FileNotFoundException)
+        {
+            // If a file is no longer present,
+            // just add zero bytes to the total.
+            retval = 0;
+        }
+        return retval;
     }
 
     public static void ProcessDirectory(string targetDirectory, ref List<string> temp)
