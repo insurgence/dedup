@@ -49,13 +49,10 @@ public class Adler32Managed : HashAlgorithm
         // use the bitconverter class to render the
         // 32-bit integer into an array of bytes
         return BitConverter.GetBytes(x_concat_value);
-
     }
-
 }
 
-
-    public class findDupes
+public class findDupes
 {
     static void Main(string[] args)
     {
