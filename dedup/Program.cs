@@ -22,7 +22,6 @@ public class findDupes
 
     static void PrintDupes(List<string> sums, List<string> dupes, string[] files)
     {
-        // Print output.
         foreach (string dupe in dupes)
         {
             Console.WriteLine("{0}\n----------", dupe);
