@@ -117,9 +117,9 @@ public class findDupes
     static string GetFileSum(string file)
     {
         // Function scalped from http://stackoverflow.com/a/10520086/1433400
-        //using (MD5 sum = MD5.Create())
-        //using (FileStream stream = File.OpenRead(file))
-        //    return BitConverter.ToString(sum.ComputeHash(stream)).Replace("-", "").ToLower();
+        // using (MD5 sum = MD5.Create())
+        // using (FileStream stream = File.OpenRead(file))
+        // return BitConverter.ToString(sum.ComputeHash(stream)).Replace("-", "").ToLower();
         using (MD5 md5Hash = MD5.Create())
         using (FileStream stream = File.OpenRead(file))
         {
