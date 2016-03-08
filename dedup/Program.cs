@@ -8,7 +8,7 @@ using System.Security.Permissions;
 
 namespace Algorithm
 {
-    public class DuplicateFileFinderClass
+    public class DuplicateFilesFinder
     {
         public static List<FileInfo> files = new List<FileInfo>();
 
@@ -77,8 +77,8 @@ public class findDupes
 {
     static void Main(string[] args)
     {
-        Algorithm.DuplicateFileFinderClass.ListDrive(args[0], true);
-        Algorithm.DuplicateFileFinderClass.ListDuplicates();
+        Algorithm.DuplicateFilesFinder.ListDrive(args[0], true);
+        Algorithm.DuplicateFilesFinder.ListDuplicates();
         Console.WriteLine("Press any key to exit from program...");
         Console.ReadKey();
     }
