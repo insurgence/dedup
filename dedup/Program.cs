@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 using System.Text;
 using System.IO;
 using System.Security;
 using System.Security.Permissions;
+using System.Threading.Tasks;
 
 namespace Algorithm
 {
@@ -55,12 +57,16 @@ namespace Algorithm
                 int c = 1;
                 foreach (var suspected in items)
                 {
-                    duplicatesFoundLog.WriteLine("{3}, {0} - {1}, Creation date {2}",
-                        suspected.Name,
-                        suspected.FullName,
-                        suspected.CreationTime,
-                        c);
-                    c++;
+                    try
+                    {
+                        duplicatesFoundLog.WriteLine("{3}, {0} - {1}, Creation date {2}",
+                            suspected.Name,
+                            suspected.FullName,
+                            suspected.CreationTime,
+                            c);
+                        c++;
+                    }
+                    catch(PathTooLongException) { continue; }
                 }
 
                 duplicatesFoundLog.WriteLine();
@@ -77,9 +83,15 @@ public class findDupes
 {
     static void Main(string[] args)
     {
+        var watch = Stopwatch.StartNew();
+
         Algorithm.DuplicateFilesFinder.ListDrive(args[0], true);
         Algorithm.DuplicateFilesFinder.ListDuplicates();
-        Console.WriteLine("Press any key to exit from program...");
+
+        watch.Stop();
+        var elapsedMS = watch.ElapsedMilliseconds / 1000;
+        
+        Console.WriteLine($"Elapsed time: {elapsedMS}\nPress any key to exit from program...");
         Console.ReadKey();
     }
 }
