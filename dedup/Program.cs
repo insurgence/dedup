@@ -91,7 +91,7 @@ public class findDupes
         watch.Stop();
         var elapsedMS = watch.ElapsedMilliseconds / 1000;
         
-        Console.WriteLine($"Elapsed time: {elapsedMS}\nPress any key to exit from program...");
+        Console.WriteLine($"Elapsed time: {elapsedMS}\nPress any key to exit...");
         Console.ReadKey();
     }
 }
